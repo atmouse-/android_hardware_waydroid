@@ -111,6 +111,8 @@ struct display {
     struct wl_surface *pointer_surface;
     struct wl_surface *cursor_surface;
 
+    uint32_t repeat_keycode;
+
     int width;
     int height;
     int full_width;

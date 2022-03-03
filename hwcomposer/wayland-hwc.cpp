@@ -527,6 +527,18 @@ ensure_pipe(struct display* display, int input_type)
     n++;
 
 static void
+release_repeat_keycode(display* display) {
+    struct input_event event[1];
+    struct timespec rt;
+    unsigned int res, n = 0;
+
+    ADD_EVENT(EV_KEY, display->repeat_keycode, 0);
+    res = write(display->input_fd[INPUT_KEYBOARD], &event, sizeof(event));
+    if (res < sizeof(event))
+        ALOGE("Failed to write event for InputFlinger: %s", strerror(errno));
+}
+
+static void
 keyboard_handle_keymap(void *, struct wl_keyboard *,
                uint32_t, int fd, uint32_t)
 {
@@ -542,9 +554,13 @@ keyboard_handle_enter(void *, struct wl_keyboard *,
 }
 
 static void
-keyboard_handle_leave(void *, struct wl_keyboard *,
+keyboard_handle_leave(void *data, struct wl_keyboard *,
                       uint32_t, struct wl_surface *)
 {
+    struct display* display = (struct display*)data;
+    if (display->repeat_keycode) {
+        release_repeat_keycode(display);
+    }
 }
 
 static void
@@ -569,6 +585,12 @@ keyboard_handle_key(void *data, struct wl_keyboard *,
     res = write(display->input_fd[INPUT_KEYBOARD], &event, sizeof(event));
     if (res < sizeof(event))
         ALOGE("Failed to write event for InputFlinger: %s", strerror(errno));
+
+    if (state == WL_KEYBOARD_KEY_STATE_RELEASED) {
+        display->repeat_keycode = 0;
+    } else if (state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+        display->repeat_keycode = key;
+    }
 }
 
 static void
