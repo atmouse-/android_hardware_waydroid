@@ -79,6 +79,7 @@
 #include "relative-pointer-unstable-v1-client-protocol.h"
 #include "idle-inhibit-unstable-v1-client-protocol.h"
 #include "fractional-scale-v1-client-protocol.h"
+#include "cursor-shape-v1-client-protocol.h"
 
 using ::android::hardware::hidl_string;
 
@@ -1853,6 +1854,9 @@ registry_handle_global(void *data, struct wl_registry *registry,
                 &wl_output_interface, std::min(version, 3U));
         wl_output_add_listener(d->output, &output_listener, d);
         wl_display_roundtrip(d->display);
+    } else if (strcmp(interface, "wp_cursor_shape_manager_v1") == 0) {
+        d->cursor_shape_manager = (struct wp_cursor_shape_manager_v1*)wl_registry_bind(registry, id,
+                &wp_cursor_shape_manager_v1_interface, 1);
     } else if (strcmp(interface, "wp_presentation") == 0) {
         bool no_presentation = property_get_bool("persist.waydroid.no_presentation", false);
         if (!no_presentation) {

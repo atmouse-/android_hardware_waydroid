@@ -39,6 +39,7 @@
 #include <drm_fourcc.h>
 #include <presentation-time-client-protocol.h>
 #include <viewporter-client-protocol.h>
+#include "cursor-shape-v1-client-protocol.h"
 #include <gralloc_handle.h>
 #include <cros_gralloc/cros_gralloc_handle.h>
 
@@ -904,6 +905,13 @@ void wl_cursor_cursor_handler::set_cursor(display* display) const {
                           cursor_surface_context.surface,
                           round(display->cursor_hotspot.x / display->scale),
                           round(display->cursor_hotspot.y / display->scale));
+    if (display->cursor_shape_manager != NULL) {
+        struct wp_cursor_shape_device_v1 *device =
+            wp_cursor_shape_manager_v1_get_pointer(display->cursor_shape_manager, display->pointer);
+        wp_cursor_shape_device_v1_set_shape(device, display->pointer_enter_serial,
+            WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_DEFAULT);
+        wp_cursor_shape_device_v1_destroy(device);
+    }
 }
 
 int wl_cursor_cursor_handler::apply_cursor(waydroid_hwc_composer_device_1* pdev, hwc_layer_1* hwc_layer, size_t hwc_layer_index) {
